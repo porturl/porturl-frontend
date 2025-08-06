@@ -37,13 +37,20 @@ jobs:
         # --watch=false and --browsers=ChromeHeadless are essential for CI environments.
         run: npx ng test --watch=false --browsers=ChromeHeadless --code-coverage
 
-      - name: Add coverage comment to PR
+      - name: Report code coverage
+        # This step only runs for pull request events.
         if: github.event_name == 'pull_request'
-        uses: romeovs/lcov-reporter-action@v0.4.1
+        uses: zgosalvez/github-actions-report-lcov@v4
         with:
-          lcov-file: ./coverage/porturl-frontend/lcov.info
+          # The location of the lcov files.
+          coverage-files: ./coverage/porturl-frontend/lcov.info
+          # Your GITHUB_TOKEN.
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          title: 'Code Coverage Report'
+          # (Optional) Set a minimum coverage threshold.
+          # The check will fail if the coverage is below this value.
+          minimum-coverage: 80
+          # (Optional) Set a custom title for the PR comment.
+          title-prefix: "Code Coverage Report"
 
   # =================================================================
   # Job 2: Build and Push Docker Image
