@@ -16,7 +16,7 @@ RUN npm run build -- --configuration production --output-path=dist/$PROJECT_NAME
 # =================================================================
 # Stage 2: Serve the application from an Nginx server
 # =================================================================
-FROM nginx:1.25-alpine
+FROM nginx:1.29-alpine
 
 # Use the same ARG from the previous stage
 ARG PROJECT_NAME=porturl-frontend
