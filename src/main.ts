@@ -1,6 +1,6 @@
 import { provideHttpClient } from '@angular/common/http';
-import { inject, provideZonelessChangeDetection, provideAppInitializer } from '@angular/core';
-import { bootstrapApplication } from '@angular/platform-browser';
+import {inject, provideZonelessChangeDetection, provideAppInitializer, NgModule} from '@angular/core';
+import {bootstrapApplication, platformBrowser} from '@angular/platform-browser';
 import { provideRouter, Routes } from '@angular/router';
 import { OAuthService, provideOAuthClient } from 'angular-oauth2-oidc';
 
