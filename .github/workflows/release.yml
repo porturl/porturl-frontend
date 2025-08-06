@@ -199,11 +199,51 @@ jobs:
     runs-on: ubuntu-latest
     needs: [release, docker]
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
           name: build-artifact
           path: .
+
+      - name: Get previous tag
+        id: previous_tag
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ needs.release.outputs.tag }}^ || echo "")
+          echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog for release body
+        uses: git-cliff/git-cliff-action@v3
+        with:
+          # This generates the changelog for the latest tag only
+          tag: ${{ needs.release.outputs.tag }}
+          # Save the output to a file that we will use for the release body
+          output: "release-notes.md"
+
+      - name: Generate and prepend to cumulative changelog
+        uses: git-cliff/git-cliff-action@v3
+        with:
+          # This tells git-cliff to prepend the latest changes to the existing file
+          prepend: "CHANGELOG.md"
+          # The tag for the current release
+          tag: ${{ needs.release.outputs.tag }}
+
+      - name: Commit CHANGELOG.md
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add CHANGELOG.md
+          if git diff --staged --quiet; then
+            echo "No changes to CHANGELOG.md to commit."
+          else
+            git commit -m "docs(changelog): update for release ${{ needs.release.outputs.tag }}"
+            git push
+          fi
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
@@ -212,7 +252,21 @@ jobs:
           name: "Release ${{ needs.release.outputs.tag }}"
           draft: ${{ github.event.inputs.draft == 'true' }}
           prerelease: ${{ github.event.inputs.prerelease == 'true' }}
-          generateReleaseNotes: true
+          # Use the file with only the latest changes for the body
+          bodyFile: "release-notes.md"
+          # Prepend the custom summary
+          body: |
+            ## 🚀 Release ${{ needs.release.outputs.version }}
+
+            **Built:** `${{ needs.release.outputs.timestamp }}`
+
+            **Compare with previous release:** [${{ steps.previous_tag.outputs.previous_tag }}...${{ needs.release.outputs.tag }}](https://github.com/${{ github.repository }}/compare/${{ steps.previous_tag.outputs.previous_tag }}...${{ needs.release.outputs.tag }})
+
+            ### 🐳 Docker Image
+
+            `docker pull friesoft/porturl-frontend:${{ needs.release.outputs.version }}`
+
+            ---
           artifacts: "${{ needs.release.outputs.artifact-name }}"
           token: ${{ secrets.GITHUB_TOKEN }}
           makeLatest: ${{ github.event.inputs.prerelease != 'true' }}
