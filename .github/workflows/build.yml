@@ -30,6 +30,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install lcov for coverage reporting
+        # The reporting action requires the lcov package to be installed.
+        run: sudo apt-get update && sudo apt-get install -y lcov
+
       - name: Run tests with coverage
         run: npx ng test --watch=false --browsers=ChromeHeadless --code-coverage
 
@@ -67,10 +71,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Install lcov for coverage reporting
-        # The reporting action requires the lcov package to be installed.
-        run: sudo apt-get update && sudo apt-get install -y lcov
 
       - name: Build production application
         run: npx ng build --configuration production
