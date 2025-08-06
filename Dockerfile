@@ -1,8 +1,7 @@
 # =================================================================
 # Stage 1: Build the Angular application
 # =================================================================
-# ✅ Use Node.js 22
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 
 # Set a default value for the project name
 ARG PROJECT_NAME=porturl-frontend
