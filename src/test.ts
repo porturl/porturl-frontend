@@ -1,20 +1,20 @@
-import { TestBed } from '@angular/core/testing';
 import {
-  BrowserTestingModule,
-  platformBrowserTesting,
-} from '@angular/platform-browser/testing';
-import { provideZonelessChangeDetection } from '@angular/core';
+  NgModule,
+  provideZonelessChangeDetection,
+} from '@angular/core';
+import { getTestBed } from '@angular/core/testing';
+import {
+  BrowserDynamicTestingModule,
+  platformBrowserDynamicTesting,
+} from '@angular/platform-browser-dynamic/testing';
 
-// 1. Initialize the Angular testing environment with the modern modules.
-TestBed.initTestEnvironment(
-  BrowserTestingModule,
-  platformBrowserTesting(),
+@NgModule({
+  providers: [provideZonelessChangeDetection()],
+})
+class ZonelessModule {}
+
+getTestBed().initTestEnvironment(
+  [BrowserDynamicTestingModule, ZonelessModule],
+  platformBrowserDynamicTesting(),
 );
 
-// 2. Configure the root TestBed with the zoneless provider.
-// This configuration will apply to all subsequent tests.
-TestBed.configureTestingModule({
-  providers: [
-    provideZonelessChangeDetection(),
-  ],
-});
