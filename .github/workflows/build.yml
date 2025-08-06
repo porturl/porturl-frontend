@@ -156,7 +156,6 @@ jobs:
           path: .
 
       - name: Create source code zip
-        uses: actions/checkout@v4
         run: zip -r porturl-frontend-src.zip . -x ".git/*" "node_modules/*" "dist/*" "coverage/*"
 
       - name: Remove old snapshot prerelease
