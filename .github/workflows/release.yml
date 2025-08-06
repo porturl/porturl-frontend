@@ -218,7 +218,7 @@ jobs:
           echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
 
       - name: Generate changelog for release body
-        uses: git-cliff/git-cliff-action@v4
+        uses: orhun/git-cliff-action@v4
         with:
           # This generates the changelog for the latest tag only
           tag: ${{ needs.release.outputs.tag }}
@@ -226,7 +226,7 @@ jobs:
           output: "release-notes.md"
 
       - name: Generate and prepend to cumulative changelog
-        uses: git-cliff/git-cliff-action@v4
+        uses: orhun/git-cliff-action@v4
         with:
           # This tells git-cliff to prepend the latest changes to the existing file
           prepend: "CHANGELOG.md"
