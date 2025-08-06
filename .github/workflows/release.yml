@@ -226,7 +226,7 @@ jobs:
           output: "release-notes.md"
 
       - name: Generate and prepend to cumulative changelog
-        uses: git-cliff/git-cliff-action@v3
+        uses: git-cliff/git-cliff-action@v4
         with:
           # This tells git-cliff to prepend the latest changes to the existing file
           prepend: "CHANGELOG.md"
