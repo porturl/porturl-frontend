@@ -41,7 +41,7 @@ jobs:
         if: github.event_name == 'pull_request'
         uses: zgosalvez/github-actions-report-lcov@v4
         with:
-          coverage-files: ./coverage/porturl-frontend/lcov.info
+          coverage-files: ./coverage/lcov.info
           github-token: ${{ secrets.GITHUB_TOKEN }}
           minimum-coverage: 80
           title-prefix: "Code Coverage Report"
