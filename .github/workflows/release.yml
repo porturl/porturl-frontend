@@ -205,28 +205,6 @@ jobs:
           name: build-artifact
           path: .
 
-      - name: Generate Changelog
-        id: changelog
-        run: |
-          # We need to check out the code to use git log
-          git clone https://github.com/${{ github.repository }}.git
-          cd ${{ github.repository.name }}
-
-          # Get previous tag for changelog generation
-          PREVIOUS_TAG=$(git tag --sort=-version:refname | grep -v "${{ needs.release.outputs.tag }}" | head -n1 || echo "")
-
-          if [ -n "$PREVIOUS_TAG" ]; then
-            echo "Generating changelog from $PREVIOUS_TAG to ${{ needs.release.outputs.tag }}"
-            # Use a temporary file for the changelog body
-            CHANGELOG_BODY=$(git log --pretty=format:"- %s (%h)" "$PREVIOUS_TAG..${{ needs.release.outputs.tag }}")
-            echo "changelog<<EOF" >> $GITHUB_ENV
-            echo "## Changes" >> $GITHUB_ENV
-            echo "$CHANGELOG_BODY" >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
-          else
-            echo "No previous tag found, skipping changelog generation."
-          fi
-
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
@@ -234,16 +212,7 @@ jobs:
           name: "Release ${{ needs.release.outputs.tag }}"
           draft: ${{ github.event.inputs.draft == 'true' }}
           prerelease: ${{ github.event.inputs.prerelease == 'true' }}
-          body: |
-            ## 🚀 Release ${{ needs.release.outputs.version }}
-
-            **Built:** `${{ needs.release.outputs.timestamp }}`
-
-            ${{ env.changelog }}
-
-            ### 🐳 Docker Image
-
-            `docker pull friesoft/porturl-frontend:${{ needs.release.outputs.version }}`
+          generateReleaseNotes: true
           artifacts: "${{ needs.release.outputs.artifact-name }}"
           token: ${{ secrets.GITHUB_TOKEN }}
           makeLatest: ${{ github.event.inputs.prerelease != 'true' }}
