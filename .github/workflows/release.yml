@@ -44,6 +44,7 @@ jobs:
       tag: ${{ steps.version.outputs.tag }}
       timestamp: ${{ steps.build_info.outputs.timestamp }}
       artifact-name: ${{ steps.build_info.outputs.artifact-name }}
+      previous-tag: ${{ steps.previous_tag.outputs.previous_tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -57,6 +58,9 @@ jobs:
           node-version: 24
           cache: 'npm'
 
+      - name: Install git-cliff
+        uses: taiki-e/install-action@git-cliff
+
       - name: Configure Git
         run: |
           git config --global user.name "github-actions[bot]"
@@ -65,10 +69,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Create Release and Next Snapshot Version
+      - name: Get previous tag
+        id: previous_tag
+        run: |
+          PREVIOUS_TAG=$(git tag | grep -v "snapshot" | sort -V | tail -n 1 || echo "")
+          echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+
+      - name: Create Release, Changelog, and Next Snapshot
         id: version
         run: |
-          # --- 1. Determine and commit the release version ---
+          # --- 1. Bump version to the final release number ---
           VERSION_TYPE="${{ github.event.inputs.version_type }}"
           CUSTOM_VERSION="${{ github.event.inputs.custom_version }}"
           if [[ "$VERSION_TYPE" == "custom" ]]; then
@@ -81,39 +91,42 @@ jobs:
           fi
           RELEASE_VERSION=$(node -p "require('./package.json').version")
           TAG="v$RELEASE_VERSION"
-          echo "Release version: $RELEASE_VERSION"
-          git add package.json package-lock.json
-          git commit -m "chore(release): version $RELEASE_VERSION"
-
-          # --- 2. Determine and commit the next snapshot version ---
-          # First, bump the version to the next patch without creating a snapshot
-          npm version --no-git-tag-version patch
-          # Then, manually append -SNAPSHOT to that new version
-          NEXT_VERSION=$(node -p "require('./package.json').version")
-          SNAPSHOT_VERSION="$NEXT_VERSION-SNAPSHOT"
-          # Use npm version again to set the final snapshot version string
-          npm version --no-git-tag-version "$SNAPSHOT_VERSION"
-
-          echo "Next snapshot version: $SNAPSHOT_VERSION"
-          git add package.json package-lock.json
-          git commit -m "chore(release): prepare for next development iteration"
-
-          # --- 3. Set outputs for subsequent jobs ---
           echo "version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Create and Push Tag on Release Commit
-        run: |
-          # The release commit is the one BEFORE the snapshot commit (HEAD~1)
-          RELEASE_COMMIT_HASH=$(git rev-parse HEAD~1)
-          TAG="${{ steps.version.outputs.tag }}"
+          # --- 2. Generate Changelogs ---
+          git-cliff ${{ steps.previous_tag.outputs.previous_tag }}..HEAD --strip header --output release-notes.md
+          HEADER="## [$RELEASE_VERSION](${{ github.server_url }}/${{ github.repository }}/compare/${{ steps.previous_tag.outputs.previous_tag }}...$TAG) - $(date +'%Y-%m-%d')"
+          {
+            echo "$HEADER"
+            echo ""
+            cat release-notes.md
+            echo ""
+            echo ""
+            cat CHANGELOG.md
+          } > temp_changelog.md && mv temp_changelog.md CHANGELOG.md
 
-          # Create the tag on the correct commit
-          git tag -a "$TAG" -m "Release $TAG" "$RELEASE_COMMIT_HASH"
+          # --- 3. Commit the release (version bump + changelog) and tag it ---
+          git add package.json package-lock.json CHANGELOG.md
+          git commit -m "chore(release): version $RELEASE_VERSION"
+          git tag -a "$TAG" -m "Release $TAG"
 
-          # Push both commits and the release tag
-          git push
-          git push origin "$TAG"
+          # --- 4. Commit the next snapshot version ---
+          npm version --no-git-tag-version patch
+          NEXT_VERSION=$(node -p "require('./package.json').version")
+          SNAPSHOT_VERSION="$NEXT_VERSION-SNAPSHOT"
+          npm version --no-git-tag-version "$SNAPSHOT_VERSION"
+          git add package.json package-lock.json
+          git commit -m "chore(release): prepare for next development iteration"
+
+          # --- 5. Push all changes ---
+          git push --follow-tags
+
+      - name: Upload release notes artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: release-notes.md
 
       - name: Build production application from tag
         run: |
@@ -210,68 +223,17 @@ jobs:
     runs-on: ubuntu-latest
     needs: [release, docker]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
       - name: Download build artifact
         uses: actions/download-artifact@v5
         with:
           name: build-artifact
           path: .
 
-      - name: Get previous tag
-        id: previous_tag
-        run: |
-          # List all tags, filter out the 'snapshot' tag, sort them as versions,
-          # and get the one just before the current release tag.
-          PREVIOUS_TAG=$(git tag | grep -v "snapshot" | sort -V | grep -B 1 "${{ needs.release.outputs.tag }}" | head -n 1 || echo "")
-          echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
-
-      - name: Generate changelog for release body
-        uses: orhun/git-cliff-action@v4
+      - name: Download release notes
+        uses: actions/download-artifact@v5
         with:
-          args: "${{ steps.previous_tag.outputs.previous_tag }}..${{ needs.release.outputs.tag }} --output release-notes.md"
-
-      - name: Update CHANGELOG.md with version header
-        run: |
-          # Add custom version header and prepend changelog
-          RELEASE_DATE=$(date -u +"%Y-%m-%d")
-          VERSION="${{ needs.release.outputs.version }}"
-          CURRENT_TAG="${{ needs.release.outputs.tag }}"
-          PREVIOUS_TAG="${{ steps.previous_tag.outputs.previous_tag }}"
-
-          # Create version header with compare link
-          if [ -n "$PREVIOUS_TAG" ]; then
-            echo "## [$VERSION](https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${CURRENT_TAG}) - $RELEASE_DATE" > temp-changelog.md
-          else
-            echo "## [$VERSION] - $RELEASE_DATE" > temp-changelog.md
-          fi
-          echo "" >> temp-changelog.md
-          cat release-notes.md >> temp-changelog.md
-          echo "" >> temp-changelog.md
-
-          # Prepend to existing CHANGELOG.md
-          if [ -f CHANGELOG.md ]; then
-            cat CHANGELOG.md >> temp-changelog.md
-          fi
-
-          mv temp-changelog.md CHANGELOG.md
-
-      - name: Commit CHANGELOG.md
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull
-          git add CHANGELOG.md
-          if git diff --staged --quiet; then
-            echo "No changes to CHANGELOG.md to commit."
-          else
-            git commit -m "docs(changelog): update for release ${{ needs.release.outputs.tag }}"
-            git push
-          fi
+          name: release-notes
+          path: .
 
       - name: Read changelog file content
         id: changelog_content
