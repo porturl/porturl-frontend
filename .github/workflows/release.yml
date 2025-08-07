@@ -233,12 +233,12 @@ jobs:
       - name: Generate changelog for release body
         uses: orhun/git-cliff-action@v4
         with:
-          args: "--tag ${{ needs.release.outputs.tag }} --output release-notes.md"
+          args: "${{ needs.release.outputs.tag }} --output release-notes.md"
 
       - name: Generate and prepend to cumulative changelog
         uses: orhun/git-cliff-action@v4
         with:
-          args: "--prepend CHANGELOG.md --tag ${{ needs.release.outputs.tag }}"
+          args: "--prepend CHANGELOG.md ${{ needs.release.outputs.tag }}"
 
       - name: Commit CHANGELOG.md
         run: |
