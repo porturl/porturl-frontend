@@ -1,3 +1,14 @@
+## [0.0.23](https://github.com/porturl/porturl-frontend/compare/v0.0.22...v0.0.23) - 2025-08-07
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Make version a link to diff to last tag - ([cfb4166](https://github.com/porturl/porturl-frontend/commit/cfb4166f2d4ff5086f8e0720e44f6d197509f9c6))
+
+
+
+
 ## [0.0.22] - 2025-08-07
 
 
