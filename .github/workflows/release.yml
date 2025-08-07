@@ -240,8 +240,15 @@ jobs:
           # Add custom version header and prepend changelog
           RELEASE_DATE=$(date -u +"%Y-%m-%d")
           VERSION="${{ needs.release.outputs.version }}"
+          CURRENT_TAG="${{ needs.release.outputs.tag }}"
+          PREVIOUS_TAG="${{ steps.previous_tag.outputs.previous_tag }}"
 
-          echo "## [$VERSION] - $RELEASE_DATE" > temp-changelog.md
+          # Create version header with compare link
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "## [$VERSION](https://github.com/${{ github.repository }}/compare/${PREVIOUS_TAG}...${CURRENT_TAG}) - $RELEASE_DATE" > temp-changelog.md
+          else
+            echo "## [$VERSION] - $RELEASE_DATE" > temp-changelog.md
+          fi
           echo "" >> temp-changelog.md
           cat release-notes.md >> temp-changelog.md
           echo "" >> temp-changelog.md
