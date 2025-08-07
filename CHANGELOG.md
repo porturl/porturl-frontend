@@ -1,3 +1,14 @@
+## [0.0.26](https://github.com/porturl/porturl-frontend/compare/v0.0.25...v0.0.26) - 2025-08-07
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(build)* Only copy browser directory, remove template file after substitution - ([10b93dc](https://github.com/porturl/porturl-frontend/commit/10b93dc37216606cb47c9f0f852b75ab7678d7e6))
+
+
+
+
+
 ## [0.0.25](https://github.com/porturl/porturl-frontend/compare/v0.0.24...v0.0.25) - 2025-08-07
 
 
