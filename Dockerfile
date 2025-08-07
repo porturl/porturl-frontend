@@ -28,6 +28,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf
 # Use the ARG in the COPY command
 COPY --from=builder /app/dist/${PROJECT_NAME} /usr/share/nginx/html
 
+COPY src/assets/env.template.js /usr/share/nginx/html/assets/env.template.js
 COPY entrypoint.sh /docker-entrypoint.d/20-envsubst.sh
 RUN chmod +x /docker-entrypoint.d/20-envsubst.sh
 EXPOSE 80
