@@ -1,6 +1,6 @@
 # .github/workflows/release.yml
 # This workflow handles the versioning, building, and release of the Angular application.
-# It is manually triggered and analogous to the provided Gradle release pipeline.
+# It is manually triggered and leaves the main branch on a -SNAPSHOT version.
 
 name: Release Angular App
 
@@ -71,46 +71,64 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Bump version and create tag
+      - name: Create Release and Next Snapshot Version
         id: version
         run: |
+          # --- 1. Determine and commit the release version ---
           VERSION_TYPE="${{ github.event.inputs.version_type }}"
           CUSTOM_VERSION="${{ github.event.inputs.custom_version }}"
-
           if [[ "$VERSION_TYPE" == "custom" ]]; then
             if [ -z "$CUSTOM_VERSION" ]; then
-              echo "Error: A custom version must be provided when type is 'custom'."
-              exit 1
+              echo "Error: A custom version must be provided." && exit 1
             fi
-            # Use npm version with the custom version string
             npm version --no-git-tag-version "$CUSTOM_VERSION"
           else
-            # Use npm version with patch, minor, or major
             npm version --no-git-tag-version "$VERSION_TYPE"
           fi
-
-          # Get the new version from package.json
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          TAG="v$NEW_VERSION"
-
-          echo "New version: $NEW_VERSION"
-          echo "Creating tag: $TAG"
-
-          # Manually create commit and tag
+          RELEASE_VERSION=$(node -p "require('./package.json').version")
+          TAG="v$RELEASE_VERSION"
+          echo "Release version: $RELEASE_VERSION"
           git add package.json package-lock.json
-          git commit -m "chore(release): version $NEW_VERSION"
-          git tag "$TAG"
+          git commit -m "chore(release): version $RELEASE_VERSION"
 
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          # --- 2. Determine and commit the next snapshot version ---
+          NEXT_BUMP_TYPE="prepatch"
+          if [[ "$VERSION_TYPE" == "minor" ]]; then
+            NEXT_BUMP_TYPE="preminor"
+          elif [[ "$VERSION_TYPE" == "major" ]]; then
+            NEXT_BUMP_TYPE="premajor"
+          fi
+          npm version --no-git-tag-version --preid=SNAPSHOT "$NEXT_BUMP_TYPE"
+          SNAPSHOT_VERSION=$(node -p "require('./package.json').version")
+          echo "Next snapshot version: $SNAPSHOT_VERSION"
+          git add package.json package-lock.json
+          git commit -m "chore(release): prepare for next development iteration"
+
+          # --- 3. Set outputs for subsequent jobs ---
+          echo "version=$RELEASE_VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      - name: Push changes and tags
+      - name: Create and Push Tag on Release Commit
         run: |
-          git push
-          git push origin ${{ steps.version.outputs.tag }}
+          # The release commit is the one BEFORE the snapshot commit (HEAD~1)
+          RELEASE_COMMIT_HASH=$(git rev-parse HEAD~1)
+          TAG="${{ steps.version.outputs.tag }}"
 
-      - name: Build production application
-        run: npx ng build --configuration production
+          # Create the tag on the correct commit
+          git tag -a "$TAG" -m "Release $TAG" "$RELEASE_COMMIT_HASH"
+
+          # Push both commits and the release tag
+          git push
+          git push origin "$TAG"
+
+      - name: Build production application from tag
+        run: |
+          echo "Checking out tag ${{ steps.version.outputs.tag }} to build artifact..."
+          git checkout ${{ steps.version.outputs.tag }}
+          echo "Running npm ci for the release version..."
+          npm ci
+          echo "Building application..."
+          npx ng build --configuration production
 
       - name: Prepare build information
         id: build_info
@@ -163,7 +181,6 @@ jobs:
           IS_PRERELEASE="${{ github.event.inputs.prerelease }}"
 
           TAGS="$IMAGE_NAME:$VERSION"
-
           # Add 'latest' and 'major.minor' tags only for stable releases
           if [ "$IS_PRERELEASE" != "true" ]; then
             TAGS="$TAGS,$IMAGE_NAME:latest"
@@ -220,17 +237,13 @@ jobs:
       - name: Generate changelog for release body
         uses: orhun/git-cliff-action@v4
         with:
-          # This generates the changelog for the latest tag only
           tag: ${{ needs.release.outputs.tag }}
-          # Save the output to a file that we will use for the release body
           output: "release-notes.md"
 
       - name: Generate and prepend to cumulative changelog
         uses: orhun/git-cliff-action@v4
         with:
-          # This tells git-cliff to prepend the latest changes to the existing file
           prepend: "CHANGELOG.md"
-          # The tag for the current release
           tag: ${{ needs.release.outputs.tag }}
 
       - name: Commit CHANGELOG.md
