@@ -253,6 +253,13 @@ jobs:
             git push
           fi
 
+      - name: Read changelog file content
+        id: changelog_content
+        run: |
+          echo 'changelog<<EOF' >> "$GITHUB_OUTPUT"
+          cat release-notes.md >> "$GITHUB_OUTPUT"
+          echo 'EOF' >> "$GITHUB_OUTPUT"
+
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:
@@ -273,6 +280,8 @@ jobs:
             `docker pull friesoft/porturl-frontend:${{ needs.release.outputs.version }}`
 
             ---
+
+            ${{ steps.changelog_content.outputs.changelog }}
           artifacts: "${{ needs.release.outputs.artifact-name }}"
           token: ${{ secrets.GITHUB_TOKEN }}
           makeLatest: ${{ github.event.inputs.prerelease != 'true' }}
