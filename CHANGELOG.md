@@ -1,3 +1,11 @@
+## [unreleased]
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(changelog)* Remove version header in github release - ([a96e4c0](https://github.com/porturl/porturl-frontend/commit/a96e4c0daec76cb8314865eb0e92469b0229e7a2))
+
+
 
 ## [0.0.19](https://github.com/porturl/porturl-frontend/compare/v0.0.18..v0.0.19) - 2025-08-07
 
