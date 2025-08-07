@@ -1,4 +1,12 @@
 
+## [0.0.19](https://github.com/porturl/porturl-frontend/compare/v0.0.18..v0.0.19) - 2025-08-07
+
+### ⚙️ Miscellaneous Tasks
+
+- Git-cliff: remove spell check - ([07e2cf1](https://github.com/porturl/porturl-frontend/commit/07e2cf1927294e7bfef55923998d44ebac6dc3fe))
+
+
+
 ## [0.0.18](https://github.com/porturl/porturl-frontend/compare/v0.0.17..v0.0.18) - 2025-08-07
 
 
