@@ -225,9 +225,9 @@ jobs:
       - name: Get previous tag
         id: previous_tag
         run: |
-          # List all tags, sort them correctly as versions, and get the one just before the current release tag.
-          # This is more reliable than 'git describe' which can pick up the 'snapshot' tag.
-          PREVIOUS_TAG=$(git tag | sort -V | grep -B 1 "${{ needs.release.outputs.tag }}" | head -n 1 || echo "")
+          # List all tags, filter out the 'snapshot' tag, sort them as versions,
+          # and get the one just before the current release tag.
+          PREVIOUS_TAG=$(git tag | grep -v "snapshot" | sort -V | grep -B 1 "${{ needs.release.outputs.tag }}" | head -n 1 || echo "")
           echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
 
       - name: Generate changelog for release body
@@ -267,7 +267,6 @@ jobs:
           name: "Release ${{ needs.release.outputs.tag }}"
           draft: ${{ github.event.inputs.draft == 'true' }}
           prerelease: ${{ github.event.inputs.prerelease == 'true' }}
-          bodyFile: "release-notes.md"
           body: |
             ## 🚀 Release ${{ needs.release.outputs.version }}
 
