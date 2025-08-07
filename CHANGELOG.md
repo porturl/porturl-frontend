@@ -1,3 +1,15 @@
+## [0.0.16] - 2025-08-07
+
+### ⚙️ Miscellaneous Tasks
+
+- Fix changelog containing snapshot
+- Fix changelog containing snapshot
+- *(release)* Version 0.0.16
+## [snapshot] - 2025-08-07
+
+### 📚 Documentation
+
+- *(changelog)* Update for release v0.0.15
 ## [0.0.15] - 2025-08-07
 
 ### 📚 Documentation
