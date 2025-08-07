@@ -1,8 +1,4 @@
-# .github/workflows/release.yml
-# This workflow handles the versioning, building, and release of the Angular application.
-# It is manually triggered and leaves the main branch on a -SNAPSHOT version.
-
-name: Release Angular App
+name: Release
 
 on:
   workflow_dispatch:
@@ -39,7 +35,6 @@ permissions:
 jobs:
   # =================================================================
   # Job 1: Version, Build, and Tag
-  # This job updates the version, builds the artifact, and pushes the tag.
   # =================================================================
   release:
     name: 🚀 Version and Build
@@ -53,7 +48,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          # Use a token with write permissions to push the version bump
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
@@ -92,14 +86,14 @@ jobs:
           git commit -m "chore(release): version $RELEASE_VERSION"
 
           # --- 2. Determine and commit the next snapshot version ---
-          NEXT_BUMP_TYPE="prepatch"
-          if [[ "$VERSION_TYPE" == "minor" ]]; then
-            NEXT_BUMP_TYPE="preminor"
-          elif [[ "$VERSION_TYPE" == "major" ]]; then
-            NEXT_BUMP_TYPE="premajor"
-          fi
-          npm version --no-git-tag-version --preid=SNAPSHOT "$NEXT_BUMP_TYPE"
-          SNAPSHOT_VERSION=$(node -p "require('./package.json').version")
+          # First, bump the version to the next patch without creating a snapshot
+          npm version --no-git-tag-version patch
+          # Then, manually append -SNAPSHOT to that new version
+          NEXT_VERSION=$(node -p "require('./package.json').version")
+          SNAPSHOT_VERSION="$NEXT_VERSION-SNAPSHOT"
+          # Use npm version again to set the final snapshot version string
+          npm version --no-git-tag-version "$SNAPSHOT_VERSION"
+
           echo "Next snapshot version: $SNAPSHOT_VERSION"
           git add package.json package-lock.json
           git commit -m "chore(release): prepare for next development iteration"
@@ -181,7 +175,7 @@ jobs:
           IS_PRERELEASE="${{ github.event.inputs.prerelease }}"
 
           TAGS="$IMAGE_NAME:$VERSION"
-          # Add 'latest' and 'major.minor' tags only for stable releases
+
           if [ "$IS_PRERELEASE" != "true" ]; then
             TAGS="$TAGS,$IMAGE_NAME:latest"
             MAJOR_MINOR=$(echo "$VERSION" | cut -d. -f1,2)
@@ -265,9 +259,7 @@ jobs:
           name: "Release ${{ needs.release.outputs.tag }}"
           draft: ${{ github.event.inputs.draft == 'true' }}
           prerelease: ${{ github.event.inputs.prerelease == 'true' }}
-          # Use the file with only the latest changes for the body
           bodyFile: "release-notes.md"
-          # Prepend the custom summary
           body: |
             ## 🚀 Release ${{ needs.release.outputs.version }}
 
