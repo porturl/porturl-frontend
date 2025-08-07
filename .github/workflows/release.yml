@@ -233,12 +233,12 @@ jobs:
       - name: Generate changelog for release body
         uses: orhun/git-cliff-action@v4
         with:
-          args: "${{ steps.previous_tag.outputs.previous_tag }}..${{ needs.release.outputs.tag }} --ignore-tags 'snapshot' --output release-notes.md"
+          args: "${{ steps.previous_tag.outputs.previous_tag }}..${{ needs.release.outputs.tag }} --skip header --output release-notes.md"
 
       - name: Generate and prepend to cumulative changelog
         uses: orhun/git-cliff-action@v4
         with:
-          args: "${{ steps.previous_tag.outputs.previous_tag }}..${{ needs.release.outputs.tag }} --ignore-tags 'snapshot' --prepend CHANGELOG.md "
+          args: "${{ steps.previous_tag.outputs.previous_tag }}..${{ needs.release.outputs.tag }} --prepend CHANGELOG.md "
 
       - name: Commit CHANGELOG.md
         run: |
@@ -264,22 +264,19 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ needs.release.outputs.tag }}
-          name: "Release ${{ needs.release.outputs.tag }}"
+          name: "🚀 Release ${{ needs.release.outputs.tag }}"
           draft: ${{ github.event.inputs.draft == 'true' }}
           prerelease: ${{ github.event.inputs.prerelease == 'true' }}
           body: |
-            ## 🚀 Release ${{ needs.release.outputs.version }}
-
             **Built:** `${{ needs.release.outputs.timestamp }}`
 
-            **Compare with previous release:** [${{ steps.previous_tag.outputs.previous_tag }}...${{ needs.release.outputs.tag }}](https://github.com/${{ github.repository }}/compare/${{ steps.previous_tag.outputs.previous_tag }}...${{ needs.release.outputs.tag }})
-
-            ### 🐳 Docker Image
+            ## 🐳 Docker Image
 
             `docker pull friesoft/porturl-frontend:${{ needs.release.outputs.version }}`
 
             ---
 
+            ## Changes
             ${{ steps.changelog_content.outputs.changelog }}
           artifacts: "${{ needs.release.outputs.artifact-name }}"
           token: ${{ secrets.GITHUB_TOKEN }}
