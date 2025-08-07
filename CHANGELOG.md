@@ -1,3 +1,14 @@
+## [0.0.22] - 2025-08-07
+
+
+
+### ⚙️ Miscellaneous Tasks
+
+- Move changelog header generation to bash instead of using git-cliff - ([7ca7e43](https://github.com/porturl/porturl-frontend/commit/7ca7e43620e2eb9a73594742c7269dac5cde16b8))
+
+
+
+
 ## [unreleased]
 
 
