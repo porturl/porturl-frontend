@@ -3,6 +3,14 @@
 
 ### ⚙️ Miscellaneous Tasks
 
+- *(changelog)* Fix wrong git-cliff argument - ([6f15270](https://github.com/porturl/porturl-frontend/commit/6f15270601dd311857bd0417ac56896e33d13981))
+
+
+## [unreleased]
+
+
+### ⚙️ Miscellaneous Tasks
+
 - *(changelog)* Remove version header in github release - ([a96e4c0](https://github.com/porturl/porturl-frontend/commit/a96e4c0daec76cb8314865eb0e92469b0229e7a2))
 
 
