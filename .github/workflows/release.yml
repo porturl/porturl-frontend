@@ -225,7 +225,9 @@ jobs:
       - name: Get previous tag
         id: previous_tag
         run: |
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ needs.release.outputs.tag }}^ || echo "")
+          # List all tags, sort them correctly as versions, and get the one just before the current release tag.
+          # This is more reliable than 'git describe' which can pick up the 'snapshot' tag.
+          PREVIOUS_TAG=$(git tag | sort -V | grep -B 1 "${{ needs.release.outputs.tag }}" | head -n 1 || echo "")
           echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
 
       - name: Generate changelog for release body
