@@ -233,12 +233,25 @@ jobs:
       - name: Generate changelog for release body
         uses: orhun/git-cliff-action@v4
         with:
-          args: "${{ steps.previous_tag.outputs.previous_tag }}..${{ needs.release.outputs.tag }} --strip header --output release-notes.md"
+          args: "${{ steps.previous_tag.outputs.previous_tag }}..${{ needs.release.outputs.tag }} --output release-notes.md"
 
-      - name: Generate and prepend to cumulative changelog
-        uses: orhun/git-cliff-action@v4
-        with:
-          args: "${{ steps.previous_tag.outputs.previous_tag }}..${{ needs.release.outputs.tag }} --prepend CHANGELOG.md "
+      - name: Update CHANGELOG.md with version header
+        run: |
+          # Add custom version header and prepend changelog
+          RELEASE_DATE=$(date -u +"%Y-%m-%d")
+          VERSION="${{ needs.release.outputs.version }}"
+
+          echo "## [$VERSION] - $RELEASE_DATE" > temp-changelog.md
+          echo "" >> temp-changelog.md
+          cat release-notes.md >> temp-changelog.md
+          echo "" >> temp-changelog.md
+
+          # Prepend to existing CHANGELOG.md
+          if [ -f CHANGELOG.md ]; then
+            cat CHANGELOG.md >> temp-changelog.md
+          fi
+
+          mv temp-changelog.md CHANGELOG.md
 
       - name: Commit CHANGELOG.md
         run: |
