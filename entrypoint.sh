@@ -20,4 +20,6 @@ echo "--- Generated ${OUTPUT_FILE} ---"
 cat "${OUTPUT_FILE}"
 echo "---------------------------------"
 
+rm $TEMPLATE_FILE
+
 # The original Nginx entrypoint will now be called, starting the web server.
