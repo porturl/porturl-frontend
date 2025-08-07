@@ -1,6 +1,6 @@
 {
   "name": "porturl-frontend",
-  "version": "0.0.20-SNAPSHOT",
+  "version": "0.0.20",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
