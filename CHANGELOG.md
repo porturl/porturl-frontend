@@ -1,3 +1,14 @@
+## [0.0.25](https://github.com/porturl/porturl-frontend/compare/v0.0.24...v0.0.25) - 2025-08-07
+
+
+### ⚙️ Miscellaneous Tasks
+
+- *(build)* Fix docker build - ([be16171](https://github.com/porturl/porturl-frontend/commit/be16171c7f7d575a25baf7df1d32ba24d0cfcfb0))
+
+
+
+
+
 ## [0.0.24](https://github.com/porturl/porturl-frontend/compare/v0.0.23...v0.0.24) - 2025-08-07
 
 
