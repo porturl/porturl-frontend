@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -65,7 +65,7 @@ jobs:
       artifact-name: ${{ steps.build_info.outputs.artifact-name }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -113,7 +113,7 @@ jobs:
     steps:
       - name: Checkout code
         # We check out the full source for the multi-stage Docker build
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up QEMU & Docker Buildx
         uses: docker/setup-qemu-action@v3
