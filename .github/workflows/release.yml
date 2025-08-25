@@ -47,7 +47,7 @@ jobs:
       previous-tag: ${{ steps.previous_tag.outputs.previous_tag }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
@@ -166,7 +166,7 @@ jobs:
     needs: release
     steps:
       - name: Checkout release tag
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ needs.release.outputs.tag }}
 
