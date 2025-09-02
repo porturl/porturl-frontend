@@ -1,5 +1,20 @@
 # porturl
 
+```
+podman pull friesoft/porturl-frontend:0.0.25
+
+podman run -it -p 8080:80/tcp -e API_URL=http://127.0.0.1:8080 -e CLIENT_ID=porturl-frontend  porturl-frontend:0.0.25
+
+# enter running container for debugging
+podman ps
+podman exec -it 13f9f7a43e7d /bin/sh
+
+```
+
+
+
+
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.4.
 
 ## Development server

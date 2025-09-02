@@ -13,7 +13,7 @@ OUTPUT_FILE=${ROOT_DIR}/assets/env.js
 # Use 'envsubst' to substitute the value of '${API_URL}' in the template
 # and create the final env.js file.
 # Note: Only variables with the format ${VAR} or $VAR will be substituted.
-envsubst '${API_URL} ${ISSUER} ${CLIENT_ID}' < "$TEMPLATE_FILE" > "$OUTPUT_FILE"
+envsubst '${API_URL} ${CLIENT_ID}' < "$TEMPLATE_FILE" > "$OUTPUT_FILE"
 
 # For debugging: Print the content of the generated file to the container logs.
 echo "--- Generated ${OUTPUT_FILE} ---"

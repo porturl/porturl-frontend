@@ -18,10 +18,10 @@ export class ApiService {
               private oauthService: OAuthService,
               private configService: ConfigService) {
 
-    this.apiUrl = this.configService.config.apiUrl;
+    this.apiUrl = this.configService.apiUrl;
 
     // You can also access build-time variables
-    if (this.configService.config.production) {
+    if (this.configService.isProduction) {
       console.log('Running in production mode.');
     }
   }

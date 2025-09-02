@@ -7,9 +7,6 @@
   // URL of the backend spring boot application
   window.env.apiUrl = "${API_URL}";
 
-  // OIDC Issuer
-  window.env.issuer = "${ISSUER}";
-
   // OIDC Client ID
   window.env.clientId = "${CLIENT_ID}";
 

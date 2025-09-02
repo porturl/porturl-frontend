@@ -1,8 +1,6 @@
 import { AuthConfig } from 'angular-oauth2-oidc';
 
 const authConfig: AuthConfig = {
-  // URL of the Identity Provider
-  issuer: (window as any).env.issuer || 'https://sso.yourdomain.com/auth/realms/<yourrealm>',
 
   // URL of the SPA to redirect the user to after login
   redirectUri: window.location.origin + '/dashboard',
