@@ -27,6 +27,23 @@
 
   <!-- Main Content -->
   <main class="mx-auto max-w-7xl py-8 sm:px-6 lg:px-8">
+    <!-- Error Banner now checks the component's local property -->
+    @if (errorMessage) {
+      <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-lg mb-8" role="alert">
+        <div class="flex">
+          <div class="py-1">
+            <svg class="fill-current h-6 w-6 text-red-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M10 0C4.48 0 0 4.48 0 10s4.48 10 10 10 10-4.48 10-10S15.52 0 10 0zM9 15v-2h2v2H9zm2-4H9V5h2v6z"/>
+            </svg>
+          </div>
+          <div>
+            <p class="font-bold">Connection Error</p>
+            <p class="text-sm">{{ errorMessage }}</p>
+          </div>
+        </div>
+      </div>
+    }
+
     <!-- Add Form Card -->
     <div class="form-card">
       <h2 class="text-xl font-bold mb-4 text-gray-800">Add New Application</h2>

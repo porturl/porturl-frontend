@@ -1,8 +1,10 @@
-import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { CommonModule } from '@angular/common'; // Import CommonModule
+import { CommonModule } from '@angular/common';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { ApiService, Application } from '../api.service';
+import { ErrorService } from '../error.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -13,21 +15,35 @@ import { ApiService, Application } from '../api.service';
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush, // Use OnPush with zoneless
+  changeDetection: ChangeDetectionStrategy.OnPush, // Using OnPush for better performance
 })
-export class DashboardComponent implements OnInit {
-  applications: Application[] = [];
+export class DashboardComponent implements OnInit, OnDestroy {
   userName = '';
+  applications: Application[] = [];
+  editingApp: Application | null = null;
+
+  // This property will hold the error message directly, ensuring reliable UI updates.
+  public errorMessage: string | null = null;
+  private errorSubscription: Subscription;
+
   addForm: FormGroup;
   editForm: FormGroup;
-  editingApp: Application | null = null;
 
   constructor(
     private oauthService: OAuthService,
     private apiService: ApiService,
     private fb: FormBuilder,
-    private cdr: ChangeDetectorRef // Inject ChangeDetectorRef
-) {
+    private errorService: ErrorService,
+    private cdr: ChangeDetectorRef // Inject ChangeDetectorRef for OnPush
+  ) {
+    // Manually subscribe to the error service. This is more robust than the async pipe
+    // for triggering change detection from a background service.
+    this.errorSubscription = this.errorService.error$.subscribe(message => {
+      this.errorMessage = message;
+      // Manually tell Angular to check this component for updates, as the
+      // change came from an external service.
+      this.cdr.markForCheck();
+    });
 
     this.addForm = this.fb.group({
       name: ['', Validators.required],
@@ -49,20 +65,38 @@ export class DashboardComponent implements OnInit {
     this.loadApplications();
   }
 
+  ngOnDestroy(): void {
+    // It's a best practice to unsubscribe to prevent memory leaks.
+    if (this.errorSubscription) {
+      this.errorSubscription.unsubscribe();
+    }
+  }
+
   loadApplications(): void {
-    this.apiService.getApplications().subscribe(apps => {
-      this.applications = apps;
-      // Manually tell Angular to check for updates
-      this.cdr.markForCheck();
+    this.apiService.getApplications().subscribe({
+      next: (data) => {
+        // We only clear the error message on a SUCCESSFUL API call.
+        this.errorService.clearError();
+        this.applications = data;
+        this.cdr.markForCheck(); // Mark view for update
+      },
+      error: () => {
+        // The ApiService sets the error, which our subscription will pick up.
+        // We just need to clear the local data state.
+        this.applications = [];
+        this.cdr.markForCheck(); // Mark view for update
+      }
     });
   }
 
   onAdd(): void {
     if (this.addForm.valid) {
-      this.apiService.addApplication(this.addForm.value).subscribe(() => {
-        this.loadApplications(); // This will fetch and then mark for check
-        this.addForm.reset();
-        this.cdr.markForCheck(); // Mark for check after form reset
+      this.apiService.addApplication(this.addForm.value).subscribe({
+        next: () => {
+          this.loadApplications(); // This will clear the error and mark for check on success
+          this.addForm.reset();
+        },
+        error: () => { /* The error is handled by the subscription */ }
       });
     }
   }
@@ -74,15 +108,18 @@ export class DashboardComponent implements OnInit {
       name: app.name,
       url: app.url
     });
-    // Mark for check as we've changed the component's state
-    this.cdr.markForCheck();
+    this.cdr.markForCheck(); // Mark view for update
   }
 
   onSaveEdit(): void {
-    if (this.editForm.valid && this.editingApp?.id) {
-      this.apiService.updateApplication(this.editingApp.id, this.editForm.value).subscribe(() => {
-        this.loadApplications(); // Fetches and marks for check
-        this.cancelEdit();
+    if (this.editForm.valid) {
+      const { id, ...appData } = this.editForm.value;
+      this.apiService.updateApplication(id, appData).subscribe({
+        next: () => {
+          this.loadApplications(); // Clears error and marks for check on success
+          this.cancelEdit();
+        },
+        error: () => { /* The error is handled by the subscription */ }
       });
     }
   }
@@ -90,13 +127,16 @@ export class DashboardComponent implements OnInit {
   cancelEdit(): void {
     this.editingApp = null;
     this.editForm.reset();
-    this.cdr.markForCheck();
+    this.cdr.markForCheck(); // Mark view for update
   }
 
   onDelete(id: number): void {
     if (confirm('Are you sure you want to delete this application?')) {
-      this.apiService.deleteApplication(id).subscribe(() => {
-        this.loadApplications(); // Fetches and marks for check
+      this.apiService.deleteApplication(id).subscribe({
+        next: () => {
+          this.loadApplications(); // Clears error and marks for check on success
+        },
+        error: () => { /* The error is handled by the subscription */ }
       });
     }
   }
@@ -105,3 +145,4 @@ export class DashboardComponent implements OnInit {
     this.oauthService.logOut();
   }
 }
+
