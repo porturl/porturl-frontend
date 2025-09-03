@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, BehaviorSubject } from 'rxjs';
 import { AuthConfig } from 'angular-oauth2-oidc';
 import { environment } from '../environments/environment';
 
-// Define the expected structure from /actuator/info
+// Defines the expected structure of the JSON response from /actuator/info
 interface AppConfig {
   auth: {
     'issuer-uri': string;
@@ -15,7 +15,12 @@ interface AppConfig {
   providedIn: 'root'
 })
 export class ConfigService {
-  // Get runtime config from the window object for apiUrl and clientId
+  // A private subject to hold the error message.
+  private _configError = new BehaviorSubject<string | null>(null);
+  // A public observable that components can subscribe to.
+  public configError$ = this._configError.asObservable();
+
+  // Get runtime config from the window object (for apiUrl and clientId)
   private runtimeConfig = (window as any).env || {};
 
   constructor(private http: HttpClient) {}
@@ -37,24 +42,37 @@ export class ConfigService {
 
   /**
    * Fetches the remote configuration and builds the final AuthConfig object.
+   * If it fails, it updates the configError$ observable.
    */
-  async buildAuthConfig(): Promise<AuthConfig> {
+  async buildAuthConfig(): Promise<AuthConfig | null> {
     const apiUrl = this.runtimeConfig.apiUrl || '';
     if (!apiUrl) {
-      console.error('Backend API URL is not defined in src/assets/env.js');
-      throw new Error('Backend API URL not found.');
+      const errorMessage = 'Backend API URL is not defined in src/assets/env.js';
+      console.error(errorMessage);
+      this._configError.next(errorMessage); // Notify subscribers of the error
+      return null;
     }
 
-    // Fetch the issuer URI from the backend
-    const remoteConfig = await lastValueFrom(this.http.get<AppConfig>(`${apiUrl}/actuator/info`));
-    const issuerUri = remoteConfig.auth['issuer-uri'];
+    try {
+      // Attempt to fetch the issuer URI from the backend's actuator endpoint
+      const remoteConfig = await lastValueFrom(this.http.get<AppConfig>(`${apiUrl}/actuator/info`));
+      const issuerUri = remoteConfig.auth['issuer-uri'];
 
-    // Build the final AuthConfig object
-    return {
-      ...environment.auth, // Base settings from environment.ts
-      issuer: issuerUri,    // Set the dynamically fetched issuer
-      clientId: this.runtimeConfig.clientId || environment.auth.clientId, // Use runtime clientId
-    };
+      // On success, clear any previous error
+      this._configError.next(null);
+
+      // Build and return the final AuthConfig object
+      return {
+        ...environment.auth,
+        issuer: issuerUri,
+        clientId: this.runtimeConfig.clientId || environment.auth.clientId,
+      };
+    } catch (error) {
+      const errorMessage = 'Could not connect to the backend to get the SSO configuration. Please ensure the backend is running and the API URL is correct.';
+      console.error(errorMessage, error);
+      this._configError.next(errorMessage); // Notify subscribers of the error
+      return null;
+    }
   }
 }
 

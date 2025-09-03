@@ -31,27 +31,18 @@ export async function initializeOAuthFactory() {
     const authConfig = await configService.buildAuthConfig();
     console.log('App Initializer: AuthConfig built successfully:', authConfig);
 
-    if (!authConfig.issuer) {
-      console.error('App Initializer: FATAL - Issuer URL is empty after config. Halting auth setup.');
-      return;
-    }
-
-    // Step 2: Configure the OAuthService with the fetched config
-    oauthService.configure(authConfig);
-    console.log('App Initializer: OAuthService configured.');
-
-    // Step 3: Load the discovery document and attempt to log in
-    const success = await oauthService.loadDiscoveryDocumentAndTryLogin();
-    console.log('App Initializer: loadDiscoveryDocumentAndTryLogin result:', success);
-
-    // Step 4: Set up silent refresh if the user is already logged in
-    if (success && oauthService.hasValidAccessToken()) {
-      console.log('App Initializer: User has valid token. Setting up silent refresh.');
-      oauthService.setupAutomaticSilentRefresh();
+    // Only proceed with OAuth setup if the configuration was fetched successfully
+    if (authConfig) {
+      oauthService.configure(authConfig);
+      await oauthService.loadDiscoveryDocumentAndTryLogin();
+      if (oauthService.hasValidAccessToken()) {
+        oauthService.setupAutomaticSilentRefresh();
+      }
     } else {
-      console.log('App Initializer: No valid token found or initial login failed.');
+      // If authConfig is null, it means fetching failed. Log a warning.
+      // The app will continue to load, and the login screen will show the error.
+      console.warn('App Initializer: AuthConfig could not be built. Skipping OAuth setup.');
     }
-
   } catch (error) {
     console.error('App Initializer: CRITICAL ERROR during OAuth setup:', error);
   }

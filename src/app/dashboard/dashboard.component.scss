@@ -1,0 +1,81 @@
+// Tailwind's base styles should be imported in your global `styles.scss` file,
+// not inside individual components. This resolves the import errors and warnings.
+
+// Define some theme variables for consistency
+:host {
+  --primary-color: #4f46e5; // indigo-600
+  --primary-hover-color: #4338ca; // indigo-700
+  --danger-color: #dc2626; // red-600
+  --danger-hover-color: #b91c1c; // red-700
+  --light-gray: #f3f4f6; // gray-100
+  --medium-gray: #d1d5db; // gray-300
+}
+
+// General card styling
+.form-card, .list-card {
+  @apply bg-white p-6 rounded-lg shadow-lg mb-8;
+}
+
+// Input field styling
+.input-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.input-field {
+  @apply mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm;
+}
+
+// Button styles
+.add-button, .save-button {
+  @apply inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200;
+}
+
+.edit-button, .cancel-button {
+  @apply inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors duration-200;
+}
+
+.delete-button {
+  @apply inline-flex items-center rounded-md bg-red-50 px-2.5 py-1.5 text-sm font-semibold text-red-600 shadow-sm hover:bg-red-100 transition-colors duration-200;
+}
+
+.logout-button {
+  @apply inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 transition-colors duration-200;
+}
+
+
+// Application list item
+.application-item {
+  @apply flex items-center justify-between bg-gray-50 p-4 rounded-lg;
+  transition: box-shadow 0.2s ease-in-out, transform 0.2s ease-in-out;
+
+  &:hover {
+    @apply shadow-md;
+    transform: translateY(-2px);
+  }
+}
+
+.action-buttons {
+  @apply flex space-x-2 flex-shrink-0;
+}
+
+// Modal styles
+.modal-backdrop {
+  @apply fixed inset-0 z-50 overflow-y-auto bg-gray-600 bg-opacity-75 flex items-center justify-center p-4;
+}
+
+.modal-container {
+  @apply relative bg-white rounded-lg shadow-xl p-6 m-4 max-w-lg w-full;
+  animation: modal-fade-in 0.3s ease-out;
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

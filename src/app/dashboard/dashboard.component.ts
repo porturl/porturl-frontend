@@ -1,14 +1,18 @@
 import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { CommonModule } from '@angular/common'; // Import CommonModule
 import { OAuthService } from 'angular-oauth2-oidc';
 import { ApiService, Application } from '../api.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  templateUrl: './dashboard.component.html', // See template below
+  imports: [
+    CommonModule,
+    ReactiveFormsModule
+  ],
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush, // Use OnPush with zoneless
 })
 export class DashboardComponent implements OnInit {
@@ -23,25 +27,25 @@ export class DashboardComponent implements OnInit {
     private apiService: ApiService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef // Inject ChangeDetectorRef
-  ) {
-    const claims = this.oauthService.getIdentityClaims();
-    if (claims) {
-      this.userName = (claims as any).name;
-    }
+) {
 
     this.addForm = this.fb.group({
       name: ['', Validators.required],
-      url: ['', Validators.required],
+      url: ['', [Validators.required, Validators.pattern('https?://.+')]]
     });
 
     this.editForm = this.fb.group({
       id: [null],
       name: ['', Validators.required],
-      url: ['', Validators.required],
+      url: ['', [Validators.required, Validators.pattern('https?://.+')]]
     });
   }
 
   ngOnInit(): void {
+    const claims = this.oauthService.getIdentityClaims();
+    if (claims && typeof claims === 'object' && 'name' in claims) {
+      this.userName = claims['name'] as string;
+    }
     this.loadApplications();
   }
 
@@ -85,7 +89,7 @@ export class DashboardComponent implements OnInit {
 
   cancelEdit(): void {
     this.editingApp = null;
-    // Mark for check to hide the modal
+    this.editForm.reset();
     this.cdr.markForCheck();
   }
 
