@@ -1,3 +1,21 @@
+## [0.0.27](https://github.com/porturl/porturl-frontend/compare/v0.0.26...v0.0.27) - 2025-09-03
+
+
+### ⛰️  Features
+
+- Display error on backend not reachable - ([3904955](https://github.com/porturl/porturl-frontend/commit/3904955045dfcef0951b51b4237090036fd7f3aa))
+- Add information on login screen if backend is down; begin of styling - ([82b2612](https://github.com/porturl/porturl-frontend/commit/82b261277de0a27425c2a3d1637f90c41f64171a))
+- Fetch issuer uri from backend - ([a82ca3c](https://github.com/porturl/porturl-frontend/commit/a82ca3cabf41d47866f00a5ef16dbd9f4f327183))
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Prevent parallel builds, queue them - ([3444689](https://github.com/porturl/porturl-frontend/commit/34446894652020ffc470320160e0669b9305e377))
+- *(tests)* Fix unittest - ([e52d041](https://github.com/porturl/porturl-frontend/commit/e52d0414ca3f9a24533635395fa26e0bdfcfd2e6))
+
+
+
+
+
 ## [0.0.26](https://github.com/porturl/porturl-frontend/compare/v0.0.25...v0.0.26) - 2025-08-07
 
 
