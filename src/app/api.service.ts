@@ -52,22 +52,22 @@ export class ApiService {
   }
 
   getApplications(): Observable<Application[]> {
-    return this.http.get<Application[]>(`${this.apiUrl}/applications`, { headers: this.getAuthHeaders() })
+    return this.http.get<Application[]>(`${this.apiUrl}/api/applications`, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError())); // Add the error handling pipe
   }
 
   addApplication(app: Application): Observable<Application> {
-    return this.http.post<Application>(`${this.apiUrl}/applications`, app, { headers: this.getAuthHeaders() })
+    return this.http.post<Application>(`${this.apiUrl}/api/applications`, app, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError()));
   }
 
   updateApplication(id: number, app: Application): Observable<Application> {
-    return this.http.put<Application>(`${this.apiUrl}/applications/${id}`, app, { headers: this.getAuthHeaders() })
+    return this.http.put<Application>(`${this.apiUrl}/api/applications/${id}`, app, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError()));
   }
 
   deleteApplication(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/applications/${id}`, { headers: this.getAuthHeaders() })
+    return this.http.delete<void>(`${this.apiUrl}/api/applications/${id}`, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError()));
   }
 }
