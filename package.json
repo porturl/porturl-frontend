@@ -24,10 +24,12 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/cdk": "^20.2.7",
     "@angular/common": "^20.2.1",
     "@angular/compiler": "^20.2.1",
     "@angular/core": "^20.2.1",
     "@angular/forms": "^20.2.1",
+    "@angular/material": "^20.2.7",
     "@angular/platform-browser": "^20.2.1",
     "@angular/platform-browser-dynamic": "^20.2.1",
     "@angular/router": "^20.2.1",
@@ -35,7 +37,10 @@
     "@tailwindcss/vite": "^4.1.12",
     "angular-oauth2-oidc": "^20.0.2",
     "rxjs": "~7.8.0",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "@fortawesome/angular-fontawesome": "^3.0.0",
+    "@fortawesome/fontawesome-svg-core": "^6.5.2",
+    "@fortawesome/free-solid-svg-icons": "^6.5.2"
   },
   "devDependencies": {
     "@angular/build": "^20.2.0",

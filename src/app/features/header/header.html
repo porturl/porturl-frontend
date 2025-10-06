@@ -1,0 +1,36 @@
+<mat-toolbar color="primary" class="app-header">
+  <ng-container *ngIf="!searchVisible()">
+    <span>Application Portal</span>
+    <span class="spacer"></span>
+
+    <button mat-icon-button matTooltip="Search" (click)="searchVisible.set(true)">
+      <mat-icon>search</mat-icon>
+    </button>
+
+    <button mat-button (click)="editModeService.toggleEditMode()">
+      <mat-icon>{{ editModeService.editMode() ? 'done' : 'edit' }}</mat-icon>
+      <span>{{ editModeService.editMode() ? 'Done' : 'Edit' }}</span>
+    </button>
+
+    <button mat-icon-button matTooltip="Settings" routerLink="/settings">
+      <mat-icon>settings</mat-icon>
+    </button>
+
+    <button mat-icon-button matTooltip="Logout">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </ng-container>
+
+  <ng-container *ngIf="searchVisible()">
+    <mat-form-field class="search-field" appearance="outline">
+      <input matInput #searchInput
+             placeholder="Search..."
+             [value]="searchService.searchTerm()"
+             (input)="onSearchInput($event)"
+             (keydown.enter)="searchInput.blur()">
+    </mat-form-field>
+    <button mat-icon-button matTooltip="Close search" (click)="searchVisible.set(false)">
+      <mat-icon>close</mat-icon>
+    </button>
+  </ng-container>
+</mat-toolbar>

@@ -1,0 +1,131 @@
+:host {
+  display: block;
+  position: relative;
+}
+
+.category-card {
+  background-color: #2a2a2a; /* Darker card background */
+  color: white;
+  border: 1px solid #444; /* Subtle border */
+  border-radius: 12px;
+  position: relative;
+}
+
+mat-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+mat-card-title {
+  padding: 16px 16px 0;
+}
+
+mat-card-content {
+  padding-top: 16px;
+}
+
+.app-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background-color: #3c3c3c;
+  border-radius: 12px;
+  padding: 12px;
+  height: 100px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.app-link {
+  display: contents;
+  text-decoration: none;
+  color: white;
+}
+
+.app-container:not(.in-edit-mode):hover {
+  background-color: #4f4f4f;
+}
+
+.in-edit-mode .app-link {
+  pointer-events: none; /* Disable navigation in edit mode */
+  cursor: grab;
+}
+
+.app-icon-wrapper {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.app-icon {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.app-name {
+  font-size: 12px;
+  margin-top: 8px;
+  align-self: stretch;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.delete-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background-color: rgba(0,0,0,0.7);
+  color: white;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+
+  .mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+  }
+}
+
+.category-delete-btn {
+  top: 8px;
+  right: 8px;
+}
+
+/* Drag-and-drop styles */
+.cdk-drag-preview {
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+              0 8px 10px 1px rgba(0, 0, 0, 0.14),
+              0 3px 14px 2px rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .app-container:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+[cdkDragHandle] {
+  cursor: move;
+  cursor: grab;
+}
+
+[cdkDragHandle]:active {
+  cursor: grabbing;
+}

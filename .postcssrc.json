@@ -1,5 +1,15 @@
 {
   "plugins": {
-    "@tailwindcss/postcss": {}
+    "@tailwindcss/postcss": {
+      "config": {
+        "content": [
+          "./src/**/*.{html,ts,scss}"
+        ],
+        "theme": {
+          "extend": {}
+        },
+        "plugins": []
+      }
+    }
   }
 }

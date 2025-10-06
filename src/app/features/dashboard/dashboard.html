@@ -1,0 +1,56 @@
+<div *ngIf="categories$ | async | searchFilter: searchService.searchTerm() as categories"
+     cdkDropListGroup
+     class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+     cdkDropList
+     [cdkDropListData]="categories"
+     (cdkDropListDropped)="onCategoryDrop($event)"
+     [cdkDropListDisabled]="!editModeService.editMode()">
+
+  <mat-card *ngFor="let category of categories" cdkDrag [cdkDragDisabled]="!editModeService.editMode()" class="category-card">
+    <mat-card-header class="relative">
+      <mat-card-title cdkDragHandle>{{ category.name }}</mat-card-title>
+      <div *ngIf="editModeService.editMode()" class="absolute top-2 right-2 flex space-x-1">
+        <button mat-icon-button class="control-btn" (click)="editCategory(category)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button class="control-btn" (click)="dataService.deleteCategory(category.id)">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </mat-card-header>
+    <mat-card-content cdkDropList
+                      [id]="category.id"
+                      [cdkDropListData]="category.applications"
+                      [cdkDropListConnectedTo]="getCategoryIds(categories)"
+                      (cdkDropListDropped)="onAppDrop($event)"
+                      [cdkDropListDisabled]="!editModeService.editMode()">
+      <div class="grid grid-cols-3 gap-4">
+        <div *ngFor="let app of category.applications" cdkDrag [cdkDragDisabled]="!editModeService.editMode()" class="app-container" [class.in-edit-mode]="editModeService.editMode()">
+          <a [href]="editModeService.editMode() ? null : app.url" target="_blank" class="app-link">
+            <div class="app-icon-wrapper">
+              <img [src]="app.icon" [alt]="app.name" class="app-icon" />
+            </div>
+            <span class="app-name">{{ app.name }}</span>
+          </a>
+          <div *ngIf="editModeService.editMode()" class="absolute top-1 right-1 flex flex-col space-y-1">
+            <button mat-icon-button class="control-btn" (click)="editApplication(app, category.id)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button class="control-btn" (click)="dataService.deleteApplication(category.id, app.id)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<div *ngIf="editModeService.editMode()" class="fixed bottom-4 right-4 flex flex-col space-y-2">
+  <button mat-fab color="primary" matTooltip="Add Application" (click)="addApplication()">
+    <mat-icon>add</mat-icon>
+  </button>
+  <button mat-fab color="accent" matTooltip="Add Category" (click)="addCategory()">
+    <mat-icon>create_new_folder</mat-icon>
+  </button>
+</div>

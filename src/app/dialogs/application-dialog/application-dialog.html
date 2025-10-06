@@ -1,0 +1,37 @@
+<h1 mat-dialog-title>{{ data.application ? 'Edit' : 'Add' }} Application</h1>
+<div mat-dialog-content>
+  <div class="flex justify-center items-center py-4">
+    <img [src]="form.value.icon || 'assets/placeholder-icon.png'" alt="App Icon" class="w-24 h-24 rounded-lg object-contain bg-gray-700">
+  </div>
+  <form [formGroup]="form" class="flex flex-col space-y-4">
+    <mat-form-field appearance="outline">
+      <mat-label>Application Name</mat-label>
+      <input matInput formControlName="name" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>URL</mat-label>
+      <input matInput formControlName="url" required>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Icon URL</mat-label>
+      <input matInput formControlName="icon">
+    </mat-form-field>
+
+    <div>
+      <label class="block mb-2 text-sm font-medium text-gray-300">Categories (at least one is required)</label>
+      <mat-chip-listbox multiple>
+          <mat-chip-option *ngFor="let category of allCategories"
+              [selected]="isSelected(category.id)"
+              (click)="toggleCategorySelection(category.id)">
+              {{ category.name }}
+          </mat-chip-option>
+      </mat-chip-listbox>
+    </div>
+  </form>
+</div>
+<div mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">Cancel</button>
+  <button mat-flat-button color="primary" [disabled]="!form.valid" (click)="onSave()">Save</button>
+</div>
