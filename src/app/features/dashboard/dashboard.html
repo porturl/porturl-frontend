@@ -13,30 +13,30 @@
         <button mat-icon-button class="control-btn" (click)="editCategory(category)">
           <mat-icon>edit</mat-icon>
         </button>
-        <button mat-icon-button class="control-btn" (click)="dataService.deleteCategory(category.id)">
+        <button mat-icon-button class="control-btn" (click)="deleteCategory(category.id)">
           <mat-icon>delete</mat-icon>
         </button>
       </div>
     </mat-card-header>
     <mat-card-content cdkDropList
-                      [id]="category.id"
+                      [id]="category.id.toString()"
                       [cdkDropListData]="category.applications"
-                      [cdkDropListConnectedTo]="getCategoryIds(categories)"
+                      [cdkDropListConnectedTo]="getCategoryIds(categories).map(id => id.toString())"
                       (cdkDropListDropped)="onAppDrop($event)"
                       [cdkDropListDisabled]="!editModeService.editMode()">
       <div class="grid grid-cols-3 gap-4">
         <div *ngFor="let app of category.applications" cdkDrag [cdkDragDisabled]="!editModeService.editMode()" class="app-container" [class.in-edit-mode]="editModeService.editMode()">
           <a [href]="editModeService.editMode() ? null : app.url" target="_blank" class="app-link">
             <div class="app-icon-wrapper">
-              <img [src]="app.icon" [alt]="app.name" class="app-icon" />
+              <img [src]="app.icon || 'assets/placeholder-icon.png'" [alt]="app.name" class="app-icon" />
             </div>
             <span class="app-name">{{ app.name }}</span>
           </a>
           <div *ngIf="editModeService.editMode()" class="absolute top-1 right-1 flex flex-col space-y-1">
-            <button mat-icon-button class="control-btn" (click)="editApplication(app, category.id)">
+            <button mat-icon-button class="control-btn" (click)="editApplication(app)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button class="control-btn" (click)="dataService.deleteApplication(category.id, app.id)">
+            <button mat-icon-button class="control-btn" (click)="deleteApplication(app.id)">
               <mat-icon>delete</mat-icon>
             </button>
           </div>

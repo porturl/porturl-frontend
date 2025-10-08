@@ -1,34 +1,44 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { OAuthService } from 'angular-oauth2-oidc';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, forkJoin, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { ConfigService } from './config.service';
 import { ErrorService } from './error.service';
+import { Application, Category } from './core/models/data.models';
 
-export interface Application {
-  id?: number;
-  name: string;
+// Interfaces for raw API response objects, based on the swagger spec
+interface ApiApplicationCategory {
+  category: { id: number };
+  sortOrder: number;
+}
+
+interface ApiApplication {
+  id: number;
+  name:string;
   url: string;
+  iconUrlThumbnail?: string;
+  applicationCategories: ApiApplicationCategory[];
+}
+
+interface ApiCategory {
+  id: number;
+  name: string;
+  description?: string;
+  icon?: string;
+  enabled: boolean;
+  sortOrder: number;
+  applicationSortMode?: 'CUSTOM' | 'ALPHABETICAL';
+  applications: ApiApplication[];
 }
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
-  private apiUrl: string;
-
-  constructor(
-    private http: HttpClient,
-    private oauthService: OAuthService,
-    private configService: ConfigService,
-    private errorService: ErrorService
-  ) {
-    this.apiUrl = this.configService.apiUrl;
-
-    // You can also access build-time variables
-    if (this.configService.isProduction) {
-      console.log('Running in production mode.');
-    }
-  }
+  private readonly http = inject(HttpClient);
+  private readonly oauthService = inject(OAuthService);
+  private readonly configService = inject(ConfigService);
+  private readonly errorService = inject(ErrorService);
+  private readonly apiUrl = this.configService.apiUrl;
 
   private getAuthHeaders(): HttpHeaders {
     return new HttpHeaders({
@@ -36,39 +46,98 @@ export class ApiService {
     });
   }
 
-  /**
-   * A private error handler that uses the ErrorService to broadcast
-   * a user-friendly message when the backend is unreachable.
-   */
   private handleError() {
     return (error: HttpErrorResponse): Observable<never> => {
-      // A status of 0 typically indicates a network error (CORS, backend down, etc.)
       if (error.status === 0) {
         this.errorService.showError('Could not connect to the backend. The service may be temporarily unavailable.');
       }
-      // re-throw the error to be handled by the component's error callback if needed
       return throwError(() => error);
     };
   }
 
-  getApplications(): Observable<Application[]> {
-    return this.http.get<Application[]>(`${this.apiUrl}/api/applications`, { headers: this.getAuthHeaders() })
-      .pipe(catchError(this.handleError())); // Add the error handling pipe
+  // Combines application and category data from the API into the format expected by the frontend
+  getCategories(): Observable<Category[]> {
+    return this.http.get<ApiCategory[]>(`${this.apiUrl}/api/categories`, { headers: this.getAuthHeaders() }).pipe(
+      map(apiCategories => {
+        const categories: Category[] = apiCategories.map(apiCat => ({
+          id: apiCat.id,
+          name: apiCat.name,
+          description: apiCat.description,
+          icon: apiCat.icon,
+          enabled: apiCat.enabled,
+          order: apiCat.sortOrder,
+          applicationSortMode: apiCat.applicationSortMode,
+          applications: (apiCat.applications || []).map(apiApp => ({
+            id: apiApp.id,
+            name: apiApp.name,
+            url: apiApp.url,
+            icon: apiApp.iconUrlThumbnail,
+            order: apiApp.applicationCategories.find(ac => ac.category.id === apiCat.id)?.sortOrder ?? 0,
+          })).sort((a, b) => a.order - b.order),
+        }));
+        return categories.sort((a, b) => a.order - b.order);
+      }),
+      catchError(this.handleError())
+    );
   }
 
-  addApplication(app: Application): Observable<Application> {
-    return this.http.post<Application>(`${this.apiUrl}/api/applications`, app, { headers: this.getAuthHeaders() })
+  // Category Methods
+  addCategory(categoryData: { name: string }): Observable<Category> {
+    const newCategory = { name: categoryData.name, enabled: true, applicationSortMode: 'CUSTOM', applications: [] };
+    return this.http.post<Category>(`${this.apiUrl}/api/categories`, newCategory, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError()));
   }
 
-  updateApplication(id: number, app: Application): Observable<Application> {
-    return this.http.put<Application>(`${this.apiUrl}/api/applications/${id}`, app, { headers: this.getAuthHeaders() })
+  updateCategory(category: Category): Observable<Category> {
+    const apiCategory = { ...category, sortOrder: category.order };
+    return this.http.put<Category>(`${this.apiUrl}/api/categories/${category.id}`, apiCategory, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError()));
   }
 
-  deleteApplication(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/api/applications/${id}`, { headers: this.getAuthHeaders() })
+  deleteCategory(categoryId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/api/categories/${categoryId}`, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError()));
+  }
+
+  reorderCategories(categories: Category[]): Observable<void> {
+    const payload = categories.map((c, index) => ({ id: c.id, sortOrder: index }));
+    return this.http.post<void>(`${this.apiUrl}/api/categories/reorder`, payload, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError()));
+  }
+
+  // Application Methods
+  addApplication(appData: Omit<Application, 'id' | 'order'>, categoryIds: number[]): Observable<Application> {
+    const payload = {
+      ...appData,
+      applicationCategories: categoryIds.map(id => ({ category: { id } })),
+    };
+    return this.http.post<Application>(`${this.apiUrl}/api/applications`, payload, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError()));
+  }
+
+  updateApplication(app: Application, categoryIds: number[]): Observable<Application> {
+    const payload = {
+      ...app,
+      applicationCategories: categoryIds.map(id => ({ category: { id } })),
+    };
+    return this.http.put<Application>(`${this.apiUrl}/api/applications/${app.id}`, payload, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError()));
+  }
+
+  deleteApplication(appId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/api/applications/${appId}`, { headers: this.getAuthHeaders() })
+      .pipe(catchError(this.handleError()));
+  }
+
+  reorderApplications(categoryId: number, applications: Application[]): Observable<void> {
+    const payload = applications.map((app, index) => ({
+      id: app.id,
+      applicationCategories: [{
+        id: { applicationId: app.id, categoryId: categoryId },
+        sortOrder: index,
+      }],
+    }));
+    return this.http.post<void>(`${this.apiUrl}/api/applications/reorder`, payload, { headers: this.getAuthHeaders() })
       .pipe(catchError(this.handleError()));
   }
 }
-

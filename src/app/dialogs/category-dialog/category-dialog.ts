@@ -8,6 +8,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { Category } from '../../core/models/data.models';
 
+export interface CategoryDialogData {
+  category?: Category;
+}
+
 @Component({
   selector: 'app-category-dialog',
   imports: [
@@ -31,12 +35,15 @@ export class CategoryDialog {
     enabled: [true],
   });
 
+  public isEditMode = false;
+
   constructor(
     public dialogRef: MatDialogRef<CategoryDialog>,
-    @Inject(MAT_DIALOG_DATA) public data?: Category
+    @Inject(MAT_DIALOG_DATA) public data?: CategoryDialogData
   ) {
-    if (data) {
-      this.form.patchValue(data);
+    if (data?.category) {
+      this.isEditMode = true;
+      this.form.patchValue(data.category);
     }
   }
 

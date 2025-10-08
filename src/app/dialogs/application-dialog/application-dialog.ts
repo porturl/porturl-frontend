@@ -11,7 +11,7 @@ import { Application, Category } from '../../core/models/data.models';
 export interface ApplicationDialogData {
   application?: Application;
   categories: Category[];
-  applicationCategoryIds?: string[];
+  applicationCategoryIds?: number[];
 }
 
 @Component({
@@ -34,10 +34,11 @@ export class ApplicationDialog {
     name: ['', Validators.required],
     url: ['', Validators.required],
     icon: [''],
-    categoryIds: [[] as string[], Validators.required],
+    categoryIds: [[] as number[], Validators.required],
   });
 
   public allCategories: Category[] = [];
+  public isEditMode = false;
 
   constructor(
     public dialogRef: MatDialogRef<ApplicationDialog>,
@@ -45,6 +46,7 @@ export class ApplicationDialog {
   ) {
     this.allCategories = data.categories;
     if (data.application) {
+      this.isEditMode = true;
       this.form.patchValue(data.application);
       if (data.applicationCategoryIds) {
         this.form.controls.categoryIds.setValue(data.applicationCategoryIds);
@@ -52,8 +54,8 @@ export class ApplicationDialog {
     }
   }
 
-  toggleCategorySelection(categoryId: string): void {
-    const currentIds = this.form.controls.categoryIds.value || ([] as string[]);
+  toggleCategorySelection(categoryId: number): void {
+    const currentIds = this.form.controls.categoryIds.value || ([] as number[]);
     const newIds = [...currentIds];
     const index = newIds.indexOf(categoryId);
 
@@ -65,8 +67,8 @@ export class ApplicationDialog {
     this.form.controls.categoryIds.setValue(newIds);
   }
 
-  isSelected(categoryId: string): boolean {
-    const currentIds = this.form.controls.categoryIds.value || ([] as string[]);
+  isSelected(categoryId: number): boolean {
+    const currentIds = this.form.controls.categoryIds.value || ([] as number[]);
     return currentIds.includes(categoryId);
   }
 
