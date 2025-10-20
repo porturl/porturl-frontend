@@ -1,7 +1,7 @@
 # =================================================================
 # Stage 1: Build the Angular application
 # =================================================================
-FROM node:24-alpine AS builder
+FROM node:25-alpine AS builder
 
 # Set a default value for the project name
 ARG PROJECT_NAME=porturl-frontend
