@@ -95,7 +95,7 @@ jobs:
           zip -r ../../${{ steps.build_info.outputs.artifact-name }} .
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build-artifact
           path: ${{ steps.build_info.outputs.artifact-name }}
