@@ -224,13 +224,13 @@ jobs:
     needs: [release, docker]
     steps:
       - name: Download build artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: build-artifact
           path: .
 
       - name: Download release notes
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: release-notes
           path: .
